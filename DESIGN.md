@@ -37,48 +37,49 @@
 - 用户
 ```SQL
 CREATE TABLE IF NOT EXISTS users (
-    id int,
-    username varchar(64),
-    password varchar(64),
-    role varchar(256),
-    created_at datetime,
-    updated_at datetime,
-    updated_uid int
-)
+    id INT,
+    username VARCHAR(64),
+    password VARCHAR(64),
+    role VARCHAR(256),
+    created_at DATETIME,
+    updated_at DATETIME,
+    updated_uid INT
+);
 ```
 
 - 文件
 ```SQL
 CREATE TABLE IF NOT EXISTS files (
-    id int,
-    name varchar(256),
-    hash varchar(32),
-    oss_path varchar(512),
-    created_at datetime,
-    updated_at datetime,
-    updated_uid int
-)
+    id INT,
+    name VARCHAR(256),
+    hash VARCHAR(32),
+    oss_path VARCHAR(512),
+    created_at DATETIME,
+    updated_at DATETIME,
+    updated_uid INT
+);
 ```
 
 - 会话
 ```SQL
 CREATE TABLE IF NOT EXISTS thread (
-    id int,
-    title varchar(128),
-    summary varchar(512),
-    created_at datetime,
-    updated_at datetime
-)
+    id INT,
+    user_id INT,
+    title VARCHAR(128),
+    summary VARCHAR(512),
+    created_at DATETIME,
+    updated_at DATETIME
+);
 ```
 
 ```SQL
 CREATE TABLE IF NOT EXISTS conversation (
-    id int,
-    user_id int,
-    content varchar(512),
-    created_at datetime,
-    updated_at datetime
-)
+    id INT,
+    user_id INT,
+    content VARCHAR(512),
+    created_at DATETIME,
+    updated_at DATETIME
+);
 ```
 
 2. chorma
