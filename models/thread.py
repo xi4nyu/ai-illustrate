@@ -1,0 +1,16 @@
+from sqlalchemy import Column, Integer, String, DateTime, func, ForeignKey, Text
+from sqlalchemy.orm import relationship
+from .base import Base
+
+class Thread(Base):
+    __tablename__ = "thread"
+
+    id = Column(Integer, primary_key=True, index=True)
+    user_id = Column(Integer, ForeignKey("users.id"))
+    title = Column(String(128), nullable=False)
+    summary = Column(String(512))
+    created_at = Column(DateTime, server_default=func.now())
+    updated_at = Column(DateTime, server_default=func.now(), onupdate=func.now())
+
+    owner = relationship("User")
+    conversations = relationship("Conversation", back_populates="thread")

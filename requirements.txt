@@ -1,0 +1,14 @@
+fastapi
+uvicorn[standard]
+celery
+SQLAlchemy
+duckdb-engine
+chromadb
+pydantic
+python-multipart
+pypdf
+python-docx
+openpyxl
+Pillow
+passlib[bcrypt]
+python-jose[cryptography]
