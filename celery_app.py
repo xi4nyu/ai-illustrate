@@ -1,4 +1,5 @@
 from celery import Celery
+from settings import CELERY_BROKER_URL, CELERY_RESULT_BACKEND
 
 # The broker URL can point to Redis or RabbitMQ
 # For simplicity, we can use a local Redis instance.
@@ -7,17 +8,15 @@ from celery import Celery
 # As a fallback for local dev, we can use a file-system-based broker,
 # but it's not recommended for production.
 # For this example, let's assume Redis is running.
-CELERY_BROKER_URL = "redis://localhost:6379/0"
-CELERY_RESULT_BACKEND = "redis://localhost:6379/0"
 
-celery_app = Celery(
-    "tasks",
+app = Celery(
+    "ai-illustrate",
     broker=CELERY_BROKER_URL,
     backend=CELERY_RESULT_BACKEND,
-    include=["tasks"] # Points to the tasks module
+    include=["tasks"],  # Points to the tasks module
 )
 
-celery_app.conf.update(
+app.conf.update(
     task_serializer="json",
     accept_content=["json"],
     result_serializer="json",
@@ -26,4 +25,4 @@ celery_app.conf.update(
 )
 
 if __name__ == "__main__":
-    celery_app.start()
+    app.start()

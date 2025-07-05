@@ -1,6 +1,8 @@
-from sqlalchemy import Column, Integer, String, DateTime, func, ForeignKey, Text
+from sqlalchemy import Column, DateTime, ForeignKey, Integer, String, Text, func
 from sqlalchemy.orm import relationship
+
 from .base import Base
+
 
 class Thread(Base):
     __tablename__ = "thread"

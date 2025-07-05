@@ -4,12 +4,15 @@ from datetime import datetime
 
 # --- Conversation Schemas ---
 
+
 class ConversationBase(BaseModel):
     content: str
+
 
 class ConversationCreate(ConversationBase):
     user_id: int
     thread_id: int
+
 
 class Conversation(ConversationBase):
     id: int
@@ -23,16 +26,20 @@ class Conversation(ConversationBase):
 
 # --- Thread Schemas ---
 
+
 class ThreadBase(BaseModel):
     title: str
     user_id: int
 
+
 class ThreadCreate(ThreadBase):
     pass
+
 
 class ThreadUpdate(BaseModel):
     title: Optional[str] = None
     summary: Optional[str] = None
+
 
 class Thread(ThreadBase):
     id: int

@@ -1,8 +1,10 @@
-import pypdf
 import docx
 import openpyxl
+import pypdf
 from PIL import Image
+
 # Add other necessary imports for video/audio processing if needed
+
 
 def extract_text_from_pdf(file_path: str) -> str:
     """Extracts text from a PDF file."""
@@ -13,10 +15,12 @@ def extract_text_from_pdf(file_path: str) -> str:
             text += page.extract_text() or ""
     return text
 
+
 def extract_text_from_docx(file_path: str) -> str:
     """Extracts text from a DOCX file."""
     doc = docx.Document(file_path)
     return "\n".join([para.text for para in doc.paragraphs])
+
 
 def extract_text_from_xlsx(file_path: str) -> str:
     """Extracts text from an XLSX file."""
@@ -29,6 +33,7 @@ def extract_text_from_xlsx(file_path: str) -> str:
                     text += str(cell.value) + " "
             text += "\n"
     return text
+
 
 def extract_text_from_image(file_path: str) -> str:
     """
@@ -43,20 +48,21 @@ def extract_text_from_image(file_path: str) -> str:
     # return pytesseract.image_to_string(Image.open(file_path))
     return f"Text extracted from image {file_path}"
 
+
 def process_file(file_path: str, file_type: str) -> str:
     """
     Processes a file based on its type and returns the extracted text.
     """
-    if file_type == 'pdf':
+    if file_type == "pdf":
         return extract_text_from_pdf(file_path)
-    elif file_type == 'docx':
+    elif file_type == "docx":
         return extract_text_from_docx(file_path)
-    elif file_type == 'xlsx':
+    elif file_type == "xlsx":
         return extract_text_from_xlsx(file_path)
-    elif file_type in ['png', 'jpg', 'jpeg', 'bmp', 'gif']:
+    elif file_type in ["png", "jpg", "jpeg", "bmp", "gif"]:
         return extract_text_from_image(file_path)
-    elif file_type == 'txt':
-        with open(file_path, 'r') as f:
+    elif file_type == "txt":
+        with open(file_path, "r") as f:
             return f.read()
     # Add handlers for other file types (audio, video) here
     else:

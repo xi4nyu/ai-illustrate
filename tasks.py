@@ -1,11 +1,14 @@
-from celery_app import celery_app
+import os
+
 from sqlalchemy.orm import Session
+
+from celery_app import app
 from database import SessionLocal
 from services import file_service
 from utils import file_processor, vector_utils
-import os
 
-@celery_app.task
+
+@app.task
 def process_file_task(file_id: int):
     """
     Celery task to process an uploaded file.
@@ -22,9 +25,9 @@ def process_file_task(file_id: int):
         file_path = db_file.file_path
         file_name = db_file.name
         file_hash = db_file.hash
-        
+
         # Determine file type from extension
-        file_extension = os.path.splitext(file_name)[1].lower().replace('.', '')
+        file_extension = os.path.splitext(file_name)[1].lower().replace(".", "")
 
         # 1. Extract text
         print(f"Processing file: {file_path}")
@@ -40,14 +43,15 @@ def process_file_task(file_id: int):
             file_hash=file_hash,
             file_name=file_name,
             file_type=file_extension,
-            content=extracted_text
+            content=extracted_text,
         )
         print(f"Successfully processed and vectorized {file_name}.")
 
     finally:
         db.close()
 
-@celery_app.task
+
+@app.task
 def delete_file_vector_task(file_hash: str):
     """
     Celery task to delete a file's vector from ChromaDB.

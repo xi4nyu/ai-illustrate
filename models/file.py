@@ -1,6 +1,8 @@
-from sqlalchemy import Column, Integer, String, DateTime, func, ForeignKey
+from sqlalchemy import Column, DateTime, ForeignKey, Integer, String, func
 from sqlalchemy.orm import relationship
+
 from .base import Base
+
 
 class File(Base):
     __tablename__ = "files"
