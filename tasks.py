@@ -4,8 +4,9 @@ from sqlalchemy.orm import Session
 
 from celery_app import app
 from database import SessionLocal
-from services import files
-from utils import file_processor, vector_utils
+from services.files import FileService
+from services.query import QueryMixin
+from utils import file_processor, vector
 
 
 @app.task
@@ -15,11 +16,10 @@ def process_file_task(file_id: int):
     1. Extracts text from the file.
     2. Adds the extracted text to the vector database.
     """
-    # TODO:
-    return
-    db: Session = SessionLocal()
+    QueryMixin.db: Session = SessionLocal()
+
     try:
-        db_file = files.get_file(db, file_id)
+        db_file = FileService.get_file(file_id)
         if not db_file:
             print(f"File with id {file_id} not found.")
             return
@@ -41,16 +41,15 @@ def process_file_task(file_id: int):
 
         # 2. Add to vector DB
         print(f"Adding text from {file_name} to vector database.")
-        vector_utils.add_text_to_vector_db(
+        vector.add_text_to_vector_db(
             file_hash=file_hash,
             file_name=file_name,
             file_type=file_extension,
             content=extracted_text,
         )
         print(f"Successfully processed and vectorized {file_name}.")
-
     finally:
-        db.close()
+        QueryMixin.db = None
 
 
 @app.task
@@ -61,5 +60,5 @@ def delete_file_vector_task(file_hash: str):
     # TODO:
     return
     print(f"Deleting vector for file hash: {file_hash}")
-    vector_utils.delete_vector(file_hash)
+    vector.delete_vector(file_hash)
     print(f"Successfully deleted vector for file hash: {file_hash}")

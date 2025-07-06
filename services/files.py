@@ -3,7 +3,6 @@ import os
 
 from models import File
 from services.base import BaseService
-from tasks import delete_file_vector_task
 
 
 class FileService(BaseService):
@@ -34,7 +33,8 @@ class FileService(BaseService):
                 os.remove(db_file.file_path)
 
             # Trigger deletion from the vector DB
-            delete_file_vector_task.delay(db_file.hash)
+            # TODO:
+            # delete_file_vector_task.delay(db_file.hash)
 
             cls.delete(db_file.id)
         return db_file

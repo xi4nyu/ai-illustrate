@@ -14,3 +14,6 @@ passlib[bcrypt]
 python-jose[cryptography]
 numpy<2
 pyjwt==2.10.1
+langchain
+langchain-community
+sentence_transformers

@@ -61,7 +61,7 @@ def process_file(file_path: str, file_type: str) -> str:
         return extract_text_from_xlsx(file_path)
     elif file_type in ["png", "jpg", "jpeg", "bmp", "gif"]:
         return extract_text_from_image(file_path)
-    elif file_type == "txt":
+    elif file_type in ["txt", "md"]:
         with open(file_path, "r") as f:
             return f.read()
     # Add handlers for other file types (audio, video) here

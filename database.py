@@ -13,6 +13,7 @@ from services.query import QueryMixin
 engine = create_engine(DATABASE_URL)
 SessionLocal = sessionmaker(autocommit=False, autoflush=False, bind=engine)
 
+
 @contextmanager
 def get_db():
     db = SessionLocal()
@@ -23,8 +24,8 @@ def get_db():
         QueryMixin.db = None
         db.close()
 
-Base = declarative_base()
 
+Base = declarative_base()
 
 
 # --- ChromaDB Setup ---
@@ -33,12 +34,12 @@ Base = declarative_base()
 os.makedirs(CHROMA_DATA_PATH, exist_ok=True)
 
 client = chromadb.PersistentClient(path=CHROMA_DATA_PATH)
-embedding_function = chromadb.utils.embedding_functions.DefaultEmbeddingFunction()
+# embedding_function = chromadb.utils.embedding_functions.DefaultEmbeddingFunction()
 
 # Get or create the collection
 vector_collection = client.get_or_create_collection(
     name=CHROMA_COLLECTION_NAME,
-    embedding_function=embedding_function,
+    # embedding_function=embedding_function,
 )
 
 
