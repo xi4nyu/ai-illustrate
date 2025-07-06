@@ -4,7 +4,7 @@ import os
 from sqlalchemy.orm import Session
 
 from models.file import File
-from schemas.file import FileCreate
+from schemas.files import FileCreate
 from tasks import delete_file_vector_task
 
 
