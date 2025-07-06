@@ -14,13 +14,11 @@ class FileService(BaseService):
         return cls.get_one(id=file_id)
 
     @classmethod
-    def get_files_by_user(cls, user_id: int, skip: int = 0, limit: int = 100):
-        page = skip // limit + 1
+    def get_files_by_user(cls, user_id: int, page: int = 1, limit: int = 20):
         return cls.get_list(page=page, limit=limit, joined_user=False, user_id=user_id)
 
     @classmethod
-    def get_all_files(cls, skip: int = 0, limit: int = 100):
-        page = skip // limit + 1
+    def get_all_files(cls, page: int = 1, limit: int = 20):
         return cls.get_list(page=page, limit=limit, joined_user=False)
 
     @classmethod
@@ -38,8 +36,7 @@ class FileService(BaseService):
             # Trigger deletion from the vector DB
             delete_file_vector_task.delay(db_file.hash)
 
-            cls.db.delete(db_file)
-            cls.db.commit()
+            cls.delete(db_file.id)
         return db_file
 
     @classmethod

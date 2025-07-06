@@ -1,13 +1,14 @@
 import os
 import shutil
-from typing import List
 
-from fastapi import APIRouter, HTTPException, UploadFile
+from fastapi import APIRouter, HTTPException, UploadFile, Depends
 from fastapi import File as FastAPIFile
 
-from schemas.files import File
 from services.files import FileService
 from tasks import process_file_task
+from schemas.user import User
+from schemas.api import R
+from utils.jwt import get_current_user
 from settings import UPLOAD_DIRECTORY
 
 router = APIRouter()
@@ -16,9 +17,10 @@ router = APIRouter()
 os.makedirs(UPLOAD_DIRECTORY, exist_ok=True)
 
 
-@router.post("/upload/", response_model=File)
+@router.post("/upload/")
 async def upload_file(
-    user_id: int, file: UploadFile = FastAPIFile(...)
+    file: UploadFile = FastAPIFile(...),
+    current_user: User = Depends(get_current_user),
 ):
     file_location = os.path.join(UPLOAD_DIRECTORY, file.filename)
 
@@ -31,36 +33,37 @@ async def upload_file(
 
     # Create file record in the database
     file_create = {
-        "user_id": user_id,
+        "user_id": current_user.id,
         "name": file.filename,
         "hash": file_hash,
         "file_path": file_location,
+        "updated_uid": current_user.id,
     }
     db_file = FileService.create_file_record(file_data=file_create)
 
     # Trigger the async task for file processing
     process_file_task.delay(db_file.id)
 
-    return db_file
+    return R(data=db_file)
 
 
-@router.get("/", response_model=List[File])
-def list_files(skip: int = 0, limit: int = 100):
-    files = FileService.get_all_files(skip=skip, limit=limit)
-    return files
+@router.get("/")
+def list_files(page: int = 1, limit: int = 20):
+    files = FileService.get_all_files(page=page, limit=limit)
+    return R(data=files)
 
 
-@router.get("/{file_id}", response_model=File)
+@router.get("/{file_id}")
 def read_file(file_id: int):
     db_file = FileService.get_file(file_id=file_id)
     if db_file is None:
         raise HTTPException(status_code=404, detail="File not found")
-    return db_file
+    return R(data=db_file)
 
 
-@router.delete("/{file_id}", response_model=File)
+@router.delete("/{file_id}")
 def delete_file(file_id: int):
     db_file = FileService.delete_file(file_id=file_id)
     if db_file is None:
         raise HTTPException(status_code=404, detail="File not found")
-    return db_file
+    return R(data=db_file)

@@ -15,6 +15,8 @@ def process_file_task(file_id: int):
     1. Extracts text from the file.
     2. Adds the extracted text to the vector database.
     """
+    # TODO:
+    return
     db: Session = SessionLocal()
     try:
         db_file = files.get_file(db, file_id)
@@ -56,6 +58,8 @@ def delete_file_vector_task(file_hash: str):
     """
     Celery task to delete a file's vector from ChromaDB.
     """
+    # TODO:
+    return
     print(f"Deleting vector for file hash: {file_hash}")
     vector_utils.delete_vector(file_hash)
     print(f"Successfully deleted vector for file hash: {file_hash}")
