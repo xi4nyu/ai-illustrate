@@ -11,8 +11,7 @@ class ThreadService(BaseService):
         return cls.insert(thread.dict())
 
     @classmethod
-    def get_threads_by_user(cls, user_id: int, skip: int = 0, limit: int = 100):
-        page = skip // limit + 1
+    def get_threads_by_user(cls, user_id: int, page: int = 1, limit: int = 100):
         return cls.get_list(page=page, limit=limit, joined_user=False, user_id=user_id)
 
     @classmethod
@@ -41,9 +40,12 @@ class ConversationService(BaseService):
 
     @classmethod
     def get_conversations_by_thread(
-        cls, thread_id: int, skip: int = 0, limit: int = 100
+        cls, thread_id: int, user_id: int, page: int = 1, limit: int = 20
     ):
-        page = skip // limit + 1
         return cls.get_list(
-            page=page, limit=limit, joined_user=False, thread_id=thread_id
+            page=page,
+            limit=limit,
+            joined_user=False,
+            thread_id=thread_id,
+            user_id=user_id,
         )

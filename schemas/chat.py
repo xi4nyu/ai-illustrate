@@ -10,7 +10,7 @@ class ConversationBase(BaseModel):
 
 
 class ConversationCreate(ConversationBase):
-    user_id: int
+    user_id: Optional[int] = None
     thread_id: int
 
 
@@ -29,7 +29,7 @@ class Conversation(ConversationBase):
 
 class ThreadBase(BaseModel):
     title: str
-    user_id: int
+    user_id: Optional[int] = None
 
 
 class ThreadCreate(ThreadBase):
