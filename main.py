@@ -1,7 +1,7 @@
 from contextlib import asynccontextmanager
 from fastapi import FastAPI
 
-from api import chat, files, users
+from api import chat, files, user
 from database import init_db
 
 
@@ -20,7 +20,7 @@ app = FastAPI(
 
 
 # Include the API routers
-app.include_router(users.router, prefix="/users", tags=["Users"])
+app.include_router(user.router, prefix="/users", tags=["Users"])
 app.include_router(files.router, prefix="/files", tags=["Files"])
 app.include_router(chat.router, prefix="/chat", tags=["Chat"])
 

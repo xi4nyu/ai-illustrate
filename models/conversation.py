@@ -1,13 +1,13 @@
-from sqlalchemy import Column, DateTime, ForeignKey, Integer, String, Text, func
+from sqlalchemy import Column, DateTime, ForeignKey, Integer, String, Text, func, text
 from sqlalchemy.orm import relationship
 
-from .base import Base
+from database import Base
 
 
 class Conversation(Base):
     __tablename__ = "conversation"
 
-    id = Column(Integer, primary_key=True, index=True)
+    id = Column(Integer, primary_key=True, index=True, server_default=text("nextval('conversation_id_seq')"))
     thread_id = Column(Integer, ForeignKey("thread.id"))
     user_id = Column(Integer, ForeignKey("users.id"))
     content = Column(Text, nullable=False)  # Using Text for potentially long content

@@ -5,7 +5,7 @@ from sqlalchemy.orm import Session
 
 from database import get_db
 from schemas import Conversation, ConversationCreate, Thread, ThreadCreate
-from services import chat_service
+from services import chat
 
 router = APIRouter()
 
@@ -14,14 +14,14 @@ router = APIRouter()
 
 @router.post("/threads/", response_model=Thread)
 def create_new_thread(thread: ThreadCreate, db: Session = Depends(get_db)):
-    return chat_service.create_thread(db=db, thread=thread)
+    return chat.create_thread(db=db, thread=thread)
 
 
 @router.get("/threads/user/{user_id}", response_model=List[Thread])
 def read_user_threads(
     user_id: int, skip: int = 0, limit: int = 100, db: Session = Depends(get_db)
 ):
-    threads = chat_service.get_threads_by_user(
+    threads = chat.get_threads_by_user(
         db, user_id=user_id, skip=skip, limit=limit
     )
     return threads
@@ -29,7 +29,7 @@ def read_user_threads(
 
 @router.get("/threads/{thread_id}", response_model=Thread)
 def read_thread(thread_id: int, db: Session = Depends(get_db)):
-    db_thread = chat_service.get_thread(db, thread_id=thread_id)
+    db_thread = chat.get_thread(db, thread_id=thread_id)
     if db_thread is None:
         raise HTTPException(status_code=404, detail="Thread not found")
     return db_thread
@@ -37,7 +37,7 @@ def read_thread(thread_id: int, db: Session = Depends(get_db)):
 
 @router.delete("/threads/{thread_id}", response_model=Thread)
 def delete_thread(thread_id: int, db: Session = Depends(get_db)):
-    db_thread = chat_service.delete_thread(db, thread_id=thread_id)
+    db_thread = chat.delete_thread(db, thread_id=thread_id)
     if db_thread is None:
         raise HTTPException(status_code=404, detail="Thread not found")
     return db_thread
@@ -59,14 +59,14 @@ def create_new_conversation(
     # 6. Save the user's question and the LLM's response as conversations.
 
     # For now, we'll just save the user's message.
-    return chat_service.create_conversation(db=db, conversation=conversation)
+    return chat.create_conversation(db=db, conversation=conversation)
 
 
 @router.get("/conversations/{thread_id}", response_model=List[Conversation])
 def read_thread_conversations(
     thread_id: int, skip: int = 0, limit: int = 100, db: Session = Depends(get_db)
 ):
-    conversations = chat_service.get_conversations_by_thread(
+    conversations = chat.get_conversations_by_thread(
         db, thread_id=thread_id, skip=skip, limit=limit
     )
     return conversations

@@ -1,7 +1,7 @@
 import os
 
 import chromadb
-from sqlalchemy import create_engine
+from sqlalchemy import create_engine, text
 from sqlalchemy.ext.declarative import declarative_base
 from sqlalchemy.orm import sessionmaker
 
@@ -25,7 +25,14 @@ def get_db():
 def init_db():
     # Import all models here to ensure they are registered on the metadata
     from models import conversation, file, thread, user
-    from models.base import Base
+
+    # Create sequences for DuckDB
+    with engine.connect() as conn:
+        conn.execute(text("CREATE SEQUENCE IF NOT EXISTS users_id_seq"))
+        conn.execute(text("CREATE SEQUENCE IF NOT EXISTS conversation_id_seq"))
+        conn.execute(text("CREATE SEQUENCE IF NOT EXISTS thread_id_seq"))
+        conn.execute(text("CREATE SEQUENCE IF NOT EXISTS files_id_seq"))
+        conn.commit()
 
     Base.metadata.create_all(bind=engine)
 

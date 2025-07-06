@@ -8,7 +8,7 @@ from sqlalchemy.orm import Session
 
 from database import get_db
 from schemas import File, FileCreate
-from services import file_service
+from services import files
 from tasks import process_file_task
 
 router = APIRouter()
@@ -28,7 +28,7 @@ async def upload_file(
         shutil.copyfileobj(file.file, file_object)
 
     # Calculate file hash
-    file_hash = file_service.calculate_file_hash(file_location)
+    file_hash = files.calculate_file_hash(file_location)
 
     # Create file record in the database
     file_create = {
@@ -37,7 +37,7 @@ async def upload_file(
         "hash": file_hash,
         "file_path": file_location,
     }
-    db_file = file_service.create_file_record(db, file_data=file_create)
+    db_file = files.create_file_record(db, file_data=file_create)
 
     # Trigger the async task for file processing
     process_file_task.delay(db_file.id)
@@ -47,13 +47,13 @@ async def upload_file(
 
 @router.get("/", response_model=List[File])
 def list_files(skip: int = 0, limit: int = 100, db: Session = Depends(get_db)):
-    files = file_service.get_all_files(db, skip=skip, limit=limit)
+    files = files.get_all_files(db, skip=skip, limit=limit)
     return files
 
 
 @router.get("/{file_id}", response_model=File)
 def read_file(file_id: int, db: Session = Depends(get_db)):
-    db_file = file_service.get_file(db, file_id=file_id)
+    db_file = files.get_file(db, file_id=file_id)
     if db_file is None:
         raise HTTPException(status_code=404, detail="File not found")
     return db_file
@@ -61,7 +61,7 @@ def read_file(file_id: int, db: Session = Depends(get_db)):
 
 @router.delete("/{file_id}", response_model=File)
 def delete_file(file_id: int, db: Session = Depends(get_db)):
-    db_file = file_service.delete_file(db, file_id=file_id)
+    db_file = files.delete_file(db, file_id=file_id)
     if db_file is None:
         raise HTTPException(status_code=404, detail="File not found")
     return db_file

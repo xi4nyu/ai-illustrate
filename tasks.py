@@ -4,7 +4,7 @@ from sqlalchemy.orm import Session
 
 from celery_app import app
 from database import SessionLocal
-from services import file_service
+from services import files
 from utils import file_processor, vector_utils
 
 
@@ -17,7 +17,7 @@ def process_file_task(file_id: int):
     """
     db: Session = SessionLocal()
     try:
-        db_file = file_service.get_file(db, file_id)
+        db_file = files.get_file(db, file_id)
         if not db_file:
             print(f"File with id {file_id} not found.")
             return
