@@ -7,28 +7,39 @@ from utils.secure import get_password_hash
 class UserService(BaseService):
     _model = User
 
-    def get_user(self, user_id: int):
-        return self.get_one(id=user_id)
+    @classmethod
+    def get_user(cls, user_id: int):
+        return cls.get_one(id=user_id)
 
-    def get_user_by_username(self, username: str):
-        return self.get_one(username=username)
+    @classmethod
+    def get_user_by_username(cls, username: str):
+        return cls.get_one(username=username)
 
-    def get_users(self, skip: int = 0, limit: int = 100):
-        return self.get_list(skip=skip, limit=limit)
+    @classmethod
+    def get_users(cls, page: int = 1, limit: int = 20):
+        return cls.get_list(page=page, limit=limit)
 
-    def create_user(self, user: UserCreate):
+    @classmethod
+    def create_user(cls, user: UserCreate):
         hashed_password = get_password_hash(user.password)
-        
+
         user_data = {
             "username": user.username,
             "password": hashed_password,
-            "role": user.role
+            "role": user.role,
         }
-        db_user = self.insert(user_data)
+        db_user = cls.insert(user_data)
         return db_user
 
-    def update_user(self, user_id: int, user_update: UserUpdate):
-        return self.update(user_id, user_update)
+    @classmethod
+    def update_user(cls, user_id: int, user_update: UserUpdate):
+        if user_update.password:
+            user_update.password = get_password_hash(user_update.password)
 
-    def delete_user(self, user_id: int):
-        return self.delete(id=user_id)
+        update_values = user_update.dict(exclude_unset=True)
+
+        return cls.update(update_values, id=user_id)
+
+    @classmethod
+    def delete_user(cls, user_id: int):
+        return cls.delete(id=user_id)

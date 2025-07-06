@@ -1,65 +1,68 @@
 from typing import List
 
-from fastapi import APIRouter, HTTPException
+from fastapi import APIRouter, Depends, HTTPException
 
 from schemas.user import User, UserCreate, UserLogin, UserUpdate
+from schemas.api import R
 from services.user import UserService
-from utils.jwt import create_access_token
+from utils.jwt import create_access_token, get_current_user
 from utils.secure import verify_password
 
 router = APIRouter()
 
 
-@router.post("/", response_model=User)
+@router.post("/register")
 def register(user: UserCreate):
     db_user = UserService.get_user_by_username(username=user.username)
     if db_user:
         raise HTTPException(status_code=400, detail="Username already registered")
-    return UserService.create_user(user=user)
+    user.role = ""
+    ret = UserService.create_user(user=user)
+    return R(data=ret)
 
 
-@router.post("/login", response_model=User)
+@router.post("/login")
 def login(user: UserLogin):
     db_user = UserService.get_user_by_username(username=user.username)
     if db_user is None:
         raise HTTPException(status_code=401, detail="Invalid username or password")
-    
+
     if not verify_password(user.password, db_user.password):
         raise HTTPException(status_code=401, detail="Invalid username or password")
-    access_token = create_access_token(data={"sub": db_user.id})
+    access_token = create_access_token(data={"sub": f"{db_user.id}"})
     ret = {
         "access_token": access_token,
         "token_type": "bearer",
-        "user": db_user
+        "user": {"username": db_user.username, "role": db_user.role},
     }
-    return ret
+    return R(data=ret)
 
 
-@router.get("/", response_model=List[User])
-def read_users(skip: int = 0, limit: int = 100):
-    users = UserService.get_users(skip=skip, limit=limit)
-    return users
+@router.get("/")
+def read_users(page: int = 1, limit: int = 20, _: User = Depends(get_current_user)):
+    users = UserService.get_users(page=page, limit=limit)
+    return R(data=[User.from_orm(user) for user in users])
 
 
-@router.get("/{user_id}", response_model=User)
-def read_user(user_id: int):
+@router.get("/{user_id}")
+def read_user(user_id: int, _: User = Depends(get_current_user)):
     db_user = UserService.get_user(user_id=user_id)
     if db_user is None:
         raise HTTPException(status_code=404, detail="User not found")
-    return db_user
+    return R(data=User.from_orm(db_user))
 
 
-@router.put("/{user_id}", response_model=User)
-def update_user(user_id: int, user: UserUpdate):
-    db_user = UserService.update_user(user_id=user_id, user_update=user)
-    if db_user is None:
-        raise HTTPException(status_code=404, detail="User not found")
-    return db_user
+@router.put("/{user_id}")
+def update_user(
+    user_id: int, user: UserUpdate, current_user: User = Depends(get_current_user)
+):
+    user.updated_uid = current_user.id
+    UserService.update_user(user_id=user_id, user_update=user)
+
+    return R(data={"user_id": user_id})
 
 
-@router.delete("/{user_id}", response_model=User)
-def delete_user(user_id: int):
-    db_user = UserService.delete_user(user_id=user_id)
-    if db_user is None:
-        raise HTTPException(status_code=404, detail="User not found")
-    return db_user
+@router.delete("/{user_id}")
+def delete_user(user_id: int, current_user: User = Depends(get_current_user)):
+    UserService.delete_user(user_id=user_id)
+    return R(data={"user_id": user_id})

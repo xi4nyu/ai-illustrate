@@ -16,8 +16,10 @@ class UserLogin(UserBase):
     password: str
 
 
-class UserUpdate(UserBase):
+class UserUpdate(BaseModel):
+    role: Optional[str] = None
     password: Optional[str] = None
+    updated_uid: Optional[int] = None
 
 
 class UserInDBBase(UserBase):

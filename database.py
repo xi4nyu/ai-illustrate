@@ -1,40 +1,30 @@
 import os
+from contextlib import contextmanager
 
 import chromadb
-from sqlalchemy import create_engine, text
+from sqlalchemy import create_engine
 from sqlalchemy.ext.declarative import declarative_base
 from sqlalchemy.orm import sessionmaker
 
 from settings import CHROMA_COLLECTION_NAME, CHROMA_DATA_PATH, DATABASE_URL
+from services.query import QueryMixin
 
 # --- SQLAlchemy (DuckDB) Setup ---
 engine = create_engine(DATABASE_URL)
 SessionLocal = sessionmaker(autocommit=False, autoflush=False, bind=engine)
 
-Base = declarative_base()
-
-
+@contextmanager
 def get_db():
     db = SessionLocal()
+    QueryMixin.db = db
     try:
         yield db
     finally:
+        QueryMixin.db = None
         db.close()
 
+Base = declarative_base()
 
-def init_db():
-    # Import all models here to ensure they are registered on the metadata
-    from models import conversation, file, thread, user
-
-    # Create sequences for DuckDB
-    with engine.connect() as conn:
-        conn.execute(text("CREATE SEQUENCE IF NOT EXISTS users_id_seq"))
-        conn.execute(text("CREATE SEQUENCE IF NOT EXISTS conversation_id_seq"))
-        conn.execute(text("CREATE SEQUENCE IF NOT EXISTS thread_id_seq"))
-        conn.execute(text("CREATE SEQUENCE IF NOT EXISTS files_id_seq"))
-        conn.commit()
-
-    Base.metadata.create_all(bind=engine)
 
 
 # --- ChromaDB Setup ---
@@ -42,10 +32,14 @@ def init_db():
 # Ensure the ChromaDB data directory exists
 os.makedirs(CHROMA_DATA_PATH, exist_ok=True)
 
-client = chromadb.Client()
+client = chromadb.PersistentClient(path=CHROMA_DATA_PATH)
+embedding_function = chromadb.utils.embedding_functions.DefaultEmbeddingFunction()
 
 # Get or create the collection
-vector_collection = client.get_or_create_collection(name=CHROMA_COLLECTION_NAME)
+vector_collection = client.get_or_create_collection(
+    name=CHROMA_COLLECTION_NAME,
+    embedding_function=embedding_function,
+)
 
 
 def get_vector_collection():

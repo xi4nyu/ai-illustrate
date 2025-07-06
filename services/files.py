@@ -1,54 +1,52 @@
 import hashlib
 import os
 
-from sqlalchemy.orm import Session
-
-from models.file import File
-from schemas.files import FileCreate
+from models import File
+from services.base import BaseService
 from tasks import delete_file_vector_task
 
 
-def get_file(db: Session, file_id: int):
-    return db.query(File).filter(File.id == file_id).first()
+class FileService(BaseService):
+    _model = File
 
+    @classmethod
+    def get_file(cls, file_id: int):
+        return cls.get_one(id=file_id)
 
-def get_files_by_user(db: Session, user_id: int, skip: int = 0, limit: int = 100):
-    return (
-        db.query(File).filter(File.user_id == user_id).offset(skip).limit(limit).all()
-    )
+    @classmethod
+    def get_files_by_user(cls, user_id: int, skip: int = 0, limit: int = 100):
+        page = skip // limit + 1
+        return cls.get_list(page=page, limit=limit, joined_user=False, user_id=user_id)
 
+    @classmethod
+    def get_all_files(cls, skip: int = 0, limit: int = 100):
+        page = skip // limit + 1
+        return cls.get_list(page=page, limit=limit, joined_user=False)
 
-def get_all_files(db: Session, skip: int = 0, limit: int = 100):
-    return db.query(File).offset(skip).limit(limit).all()
+    @classmethod
+    def create_file_record(cls, file_data: dict):
+        return cls.insert(file_data)
 
+    @classmethod
+    def delete_file(cls, file_id: int):
+        db_file = cls.get_file(file_id)
+        if db_file:
+            # Also delete the actual file from the filesystem
+            if os.path.exists(db_file.file_path):
+                os.remove(db_file.file_path)
 
-def create_file_record(db: Session, file_data: dict):
-    db_file = File(**file_data)
-    db.add(db_file)
-    db.commit()
-    db.refresh(db_file)
-    return db_file
+            # Trigger deletion from the vector DB
+            delete_file_vector_task.delay(db_file.hash)
 
+            cls.db.delete(db_file)
+            cls.db.commit()
+        return db_file
 
-def delete_file(db: Session, file_id: int):
-    db_file = get_file(db, file_id)
-    if db_file:
-        # Also delete the actual file from the filesystem
-        if os.path.exists(db_file.file_path):
-            os.remove(db_file.file_path)
-
-        # Trigger deletion from the vector DB
-        delete_file_vector_task.delay(db_file.hash)
-
-        db.delete(db_file)
-        db.commit()
-    return db_file
-
-
-def calculate_file_hash(file_path: str):
-    """Calculates the MD5 hash of a file."""
-    hash_md5 = hashlib.md5()
-    with open(file_path, "rb") as f:
-        for chunk in iter(lambda: f.read(4096), b""):
-            hash_md5.update(chunk)
-    return hash_md5.hexdigest()
+    @classmethod
+    def calculate_file_hash(cls, file_path: str):
+        """Calculates the MD5 hash of a file."""
+        hash_md5 = hashlib.md5()
+        with open(file_path, "rb") as f:
+            for chunk in iter(lambda: f.read(4096), b""):
+                hash_md5.update(chunk)
+        return hash_md5.hexdigest()
